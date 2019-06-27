@@ -77,11 +77,13 @@ namespace Lab2.Controllers
         /// <param name="type">Optional, filter by type</param>
         /// <returns></returns>
         [HttpGet]
-        public IEnumerable<GetExpenseDto> Get([FromQuery]DateTime? from, [FromQuery]DateTime? to, [FromQuery]TypeEnum? type)
+        public PaginatedList<GetExpenseDto> Get([FromQuery]DateTime? from, [FromQuery]DateTime? to, [FromQuery]TypeEnum? type, [FromQuery]int page = 1)
         {
-            return expenseService.GetAll(from, to, type);
+            page = Math.Max(page, 1);
+            return expenseService.GetAll(page, from, to, type);
 
         }
+
 
     }
 }

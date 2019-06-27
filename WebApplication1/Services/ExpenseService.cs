@@ -17,14 +17,15 @@ namespace Lab2.Services
             this.context = context;
         }
 
-        public IEnumerable<GetExpenseDto> GetAll(DateTime? from = null, DateTime? to = null, TypeEnum? type = null)
+        public PaginatedList<GetExpenseDto> GetAll(int page, DateTime? from = null, DateTime? to = null, TypeEnum? type = null)
         {
-            IQueryable<Expense> result = context.Expenses.Include(expense => expense.Comments);
+            IQueryable<Expense> result = context.Expenses
+                                        .OrderBy(expense => expense.Id)
+                                        .Include(expense => expense.Comments);
 
-            if (from == null && to == null && type == null)
-            {
-                return result.Select(expense => GetExpenseDto.DtoFromModel(expense));
-            }
+
+            PaginatedList<GetExpenseDto> paginatedResult = new PaginatedList<GetExpenseDto>();
+            paginatedResult.CurrentPage = page;
 
             if (from != null)
             {
@@ -41,7 +42,15 @@ namespace Lab2.Services
                 result = result.Where(expense => expense.Type == type);
             }
 
-            return result.Select(expense => GetExpenseDto.DtoFromModel(expense));
+            paginatedResult.NumberOfPages = (result.Count() - 1) / PaginatedList<GetExpenseDto>.EntriesPerPage;
+            result = result
+                     .Skip((page - 1) * PaginatedList<GetExpenseDto>.EntriesPerPage)
+                     .Take(PaginatedList<GetExpenseDto>.EntriesPerPage);
+
+            paginatedResult.Entries = result.Select(expense => GetExpenseDto.DtoFromModel(expense)).ToList();
+
+
+            return paginatedResult;
         }
 
         public Expense GetById(int id)
