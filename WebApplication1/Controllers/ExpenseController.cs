@@ -1,6 +1,7 @@
 ﻿using Lab2.DTOs;
 using Lab2.Models;
 using Lab2.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -19,7 +20,7 @@ namespace Lab2.Controllers
         private IExpenseService expenseService;
         public ExpenseController(IExpenseService expenseService)
         {
-            this.expenseService = expenseService;
+            this.expenseService = expenseService;  
         }
 
 
@@ -41,7 +42,7 @@ namespace Lab2.Controllers
             return Ok(found);
         }
 
-
+        [Authorize]
         [HttpPost]
         public void Post([FromBody] PostExpenseDto expense)
         {

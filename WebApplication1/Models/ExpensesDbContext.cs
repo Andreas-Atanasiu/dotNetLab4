@@ -10,10 +10,14 @@ namespace Lab2.Models
     {
         public ExpensesDbContext(DbContextOptions<ExpensesDbContext> options) : base(options)
         {
+
+
+
         }
 
         public DbSet<Expense> Expenses { get; set; }
         public DbSet<Comment> Comments { get; set; }
+        public DbSet<User>    Users    { get; set; }
 
 
     }
