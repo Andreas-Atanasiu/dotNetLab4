@@ -1,4 +1,6 @@
-﻿using Lab2.Models;
+﻿using Lab2.DTOs;
+using Lab2.Models;
+using Lab2.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -13,11 +15,11 @@ namespace Lab2.Controllers
     [ApiController]
     public class ExpenseController : ControllerBase
     {
-        private ExpensesDbContext context;
 
-        public ExpenseController(ExpensesDbContext context)
+        private IExpenseService expenseService;
+        public ExpenseController(IExpenseService expenseService)
         {
-            this.context = context;
+            this.expenseService = expenseService;
         }
 
 
@@ -29,54 +31,42 @@ namespace Lab2.Controllers
 
         [HttpGet("{id}")]
         public IActionResult Get(int id)
-        {
-            //var existing = context.Expenses.FirstOrDefault(expense => expense.Id == id);
-            var existing = context.Expenses.Include(exp => exp.Comments).FirstOrDefault(expense => expense.Id == id);
-            if (existing == null)
+        {   
+            var found = expenseService.GetById(id);
+
+            if (found == null)
             {
                 return NotFound();
             }
-
-            return Ok(existing);
+            return Ok(found);
         }
+
 
         [HttpPost]
-        public void Post([FromBody] Expense expense)
+        public void Post([FromBody] PostExpenseDto expense)
         {
-            context.Expenses.Add(expense);
-            context.SaveChanges();
+            expenseService.Create(expense);   
         }
+
 
         [HttpPut("{id}")]
         public IActionResult Put(int id, [FromBody] Expense expense)
         {
-            var existing = context.Expenses.AsNoTracking().FirstOrDefault(exp => exp.Id == id);
-
-            if (existing == null)
-            {
-                context.Expenses.Add(expense);
-                context.SaveChanges();
-                return Ok(expense);
-            }
-
-            expense.Id = id;
-            context.Expenses.Update(expense);
-            context.SaveChanges();
-            return Ok(expense);
+            var result = expenseService.Upsert(id, expense);
+            return Ok(result);
         }
+
 
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            var existing = context.Expenses.FirstOrDefault(expense => expense.Id == id);
+           var result = expenseService.Delete(id);
 
-            if (existing == null)
+            if (result == null)
             {
                 return NotFound();
             }
-            context.Expenses.Remove(existing);
-            context.SaveChanges();
-            return Ok();
+            return Ok(result);
         }
         /// <summary>
         /// Get all the expenses
@@ -86,26 +76,10 @@ namespace Lab2.Controllers
         /// <param name="type">Optional, filter by type</param>
         /// <returns></returns>
         [HttpGet]
-        public IEnumerable<Expense> Get([FromQuery]DateTime? from, [FromQuery]DateTime? to, [FromQuery]TypeEnum? type)
+        public IEnumerable<GetExpenseDto> Get([FromQuery]DateTime? from, [FromQuery]DateTime? to, [FromQuery]TypeEnum? type)
         {
-            IEnumerable<Expense> result = context.Expenses; //Include(expense => expense.Comments);
+            return expenseService.GetAll(from, to, type);
 
-            if (from != null)
-            {
-                result = result.Where(expense => expense.Date >= from);
-            }
-
-            if (to != null)
-            {
-                result = result.Where(expense => expense.Date <= to);
-            }
-
-            if (type != null)
-            {
-                result = result.Where(expense => expense.Type == type);
-            }
-
-            return result;
         }
 
     }
