@@ -32,7 +32,12 @@ namespace Lab2.Controllers
             if (user == null)
                 return BadRequest(new { message = "Username or password is incorrect" });
 
+            if (user == null)
+            {
+                return BadRequest(new { ErrorMessage = "Username already exists" });
+            }
             return Ok(user);
+
         }
 
         [AllowAnonymous]

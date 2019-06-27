@@ -11,8 +11,15 @@ namespace Lab2.Models
         public ExpensesDbContext(DbContextOptions<ExpensesDbContext> options) : base(options)
         {
 
+        }
 
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            builder.Entity<User>(entity => {
+                entity.HasIndex(u => u.Username).IsUnique();
+            });
 
+            
         }
 
         public DbSet<Expense> Expenses { get; set; }

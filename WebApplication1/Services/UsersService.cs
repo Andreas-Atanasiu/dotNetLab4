@@ -83,6 +83,13 @@ namespace Lab2.Services
 
         public GetUserDto Register(PostUserDto registerInfo)
         {
+
+            User existing = context.Users.FirstOrDefault(u => u.Username == registerInfo.Username);
+
+            if (existing  != null){
+                return null;
+            }
+
             context.Users.Add(new User
             {
                 LastName = registerInfo.LastName,
